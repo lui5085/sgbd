@@ -1,16 +1,44 @@
 #include <iostream>
+#include <fstream>
+#include <string>
+#include "bplustree/BPlusTree.h"
 
-// TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 int main() {
-    // TIP Press <shortcut actionId="RenameElement"/> when your caret is at the <b>lang</b> variable name to see how CLion can help you rename it.
-    auto lang = "C++";
-    std::cout << "Hello and welcome to " << lang << "!\n";
+    std::ifstream input("in.txt");
+    std::ofstream output("out.txt");
 
-    for (int i = 1; i <= 5; i++) {
-        // TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        std::cout << "i = " << i << std::endl;
+    if (!input.is_open()) {
+        std::cerr << "Erro ao abrir in.txt\n";
+        return 1;
     }
 
+    std::string line;
+    int ordem = 0;
+
+    // Ler a primeira linha: FLH/<ordem>
+    if (std::getline(input, line) && line.rfind("FLH/", 0) == 0) {
+        ordem = std::stoi(line.substr(4));
+        output << line << "\n";
+    } else {
+        std::cerr << "Formato inválido de entrada.\n";
+        return 1;
+    }
+
+    BPlusTree arvore(ordem);
+
+    while (std::getline(input, line)) {
+        if (line.rfind("INC:", 0) == 0) {
+            int x = std::stoi(line.substr(4));
+            int qtd = arvore.insert(x);
+            output << "INC:" << x << "/" << qtd << "\n";
+        } else if (line.rfind("BUS=:", 0) == 0) {
+            int x = std::stoi(line.substr(5));
+            int qtd = arvore.search(x).size();
+            output << "BUS=:" << x << "/" << qtd << "\n";
+        }
+    }
+
+    output << "H/" << arvore.getAltura() << "\n";
+
     return 0;
-    // TIP See CLion help at <a href="https://www.jetbrains.com/help/clion/">jetbrains.com/help/clion/</a>. Also, you can try interactive lessons for CLion by selecting 'Help | Learn IDE Features' from the main menu.
 }
